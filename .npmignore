@@ -1,0 +1,32 @@
+# Source files
+src/
+tests/
+*.test.ts
+*.spec.ts
+
+# Development files
+.eslintrc*
+.prettierrc*
+jest.config.*
+rollup.config.js
+tsconfig.json
+
+# Documentation
+README.md
+CHANGELOG.md
+CONTRIBUTING.md
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db 
