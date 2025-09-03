@@ -14,12 +14,10 @@ import {
   CompanyInfo,
   BulkGenerationRequest,
   BulkGenerationResponse,
-  BulkGenerationStatus,
-  CompanyData,
-  CompanyResponse,
-  CompanyParsingRequest,
-  CompanyParsingResponse,
-  CompanyParsingStatus
+  BulkStatusRequest,
+  BulkStatusResponse,
+  PlansResponse,
+  ApiLimitsResponse
 } from './types';
 
 export class ContentGemClient {
@@ -29,7 +27,7 @@ export class ContentGemClient {
 
   constructor(config: ContentGemConfig) {
     this.apiKey = config.apiKey;
-    this.baseUrl = config.baseUrl || 'https://your-domain.com/api/v1';
+    this.baseUrl = config.baseUrl || 'https://gemcontent.com/api/v1';
     this.timeout = config.timeout || 30000;
   }
 
@@ -40,7 +38,7 @@ export class ContentGemClient {
     const url = `${this.baseUrl}${endpoint}`;
     
     const defaultHeaders = {
-      'X-API-Key': this.apiKey,
+      'x-api-key': this.apiKey,
       'Content-Type': 'application/json',
     };
 
@@ -75,14 +73,18 @@ export class ContentGemClient {
   /**
    * Get all publications
    */
-  async getPublications(page: number = 1, limit: number = 10): Promise<PublicationsResponse> {
-    return this.makeRequest<PublicationsResponse>(`/publications?page=${page}&limit=${limit}`);
+  async getPublications(page: number = 1, limit: number = 10, type?: string, status?: string): Promise<PublicationsResponse> {
+    let query = `?page=${page}&limit=${limit}`;
+    if (type) query += `&type=${type}`;
+    if (status) query += `&status=${status}`;
+    
+    return this.makeRequest<PublicationsResponse>(`/publications${query}`);
   }
 
   /**
    * Get specific publication
    */
-  async getPublication(id: string): Promise<{ success: boolean; data?: { publication: Publication }; message?: string; error?: string }> {
+  async getPublication(id: string): Promise<{ success: boolean; data?: Publication; message?: string; error?: string }> {
     return this.makeRequest(`/publications/${id}`);
   }
 
@@ -107,14 +109,7 @@ export class ContentGemClient {
   }
 
   /**
-   * Check generation status
-   */
-  async checkGenerationStatus(sessionId: string): Promise<GenerationStatus> {
-    return this.makeRequest<GenerationStatus>(`/publications/generation-status/${sessionId}`);
-  }
-
-  /**
-   * Bulk generate multiple publications
+   * Bulk generate publications
    */
   async bulkGeneratePublications(request: BulkGenerationRequest): Promise<BulkGenerationResponse> {
     return this.makeRequest<BulkGenerationResponse>('/publications/bulk-generate', {
@@ -124,48 +119,20 @@ export class ContentGemClient {
   }
 
   /**
+   * Check generation status
+   */
+  async checkGenerationStatus(sessionId: string): Promise<GenerationStatus> {
+    return this.makeRequest<GenerationStatus>(`/publications/generation-status/${sessionId}`);
+  }
+
+  /**
    * Check bulk generation status
    */
-  async checkBulkGenerationStatus(bulkSessionId: string): Promise<BulkGenerationStatus> {
-    return this.makeRequest<BulkGenerationStatus>('/publications/bulk-status', {
-      method: 'POST',
-      body: JSON.stringify({ bulk_session_id: bulkSessionId }),
-    });
-  }
-
-  /**
-   * Get company information
-   */
-  async getCompanyInfo(): Promise<CompanyResponse> {
-    return this.makeRequest<CompanyResponse>('/company');
-  }
-
-  /**
-   * Update company information
-   */
-  async updateCompanyInfo(companyData: Partial<CompanyData>): Promise<CompanyResponse> {
-    return this.makeRequest<CompanyResponse>('/company', {
-      method: 'PUT',
-      body: JSON.stringify(companyData),
-    });
-  }
-
-  /**
-   * Parse company website
-   */
-  async parseCompanyWebsite(websiteUrl: string): Promise<CompanyParsingResponse> {
-    const request: CompanyParsingRequest = { website_url: websiteUrl };
-    return this.makeRequest<CompanyParsingResponse>('/company/parse', {
+  async checkBulkGenerationStatus(request: BulkStatusRequest): Promise<BulkStatusResponse> {
+    return this.makeRequest<BulkStatusResponse>('/publications/bulk-status', {
       method: 'POST',
       body: JSON.stringify(request),
     });
-  }
-
-  /**
-   * Get company parsing status
-   */
-  async getCompanyParsingStatus(): Promise<CompanyParsingStatus> {
-    return this.makeRequest<CompanyParsingStatus>('/company/parsing-status');
   }
 
   /**
@@ -208,18 +175,34 @@ export class ContentGemClient {
   /**
    * Download publication
    */
-  async downloadPublication(id: string, format: 'pdf' | 'docx' | 'html' | 'markdown' = 'pdf'): Promise<{ success: boolean; data?: { url: string }; message?: string; error?: string }> {
+  async downloadPublication(id: string, format: 'pdf' | 'md' | 'txt' | 'zip' = 'pdf', title?: string, content?: string, images?: any[]): Promise<{ success: boolean; data?: { url: string }; message?: string; error?: string }> {
+    const body: any = { format };
+    if (title) body.title = title;
+    if (content) body.content = content;
+    if (images) body.images = images;
+
     return this.makeRequest(`/publications/${id}/download`, {
       method: 'POST',
-      body: JSON.stringify({ format }),
+      body: JSON.stringify(body),
     });
+  }
+
+  /**
+   * Get publication statistics
+   */
+  async getPublicationStats(): Promise<{ success: boolean; data?: any; message?: string; error?: string }> {
+    return this.makeRequest('/publications/stats');
   }
 
   /**
    * Get all images
    */
-  async getImages(page: number = 1, limit: number = 10): Promise<ImagesResponse> {
-    return this.makeRequest<ImagesResponse>(`/images?page=${page}&limit=${limit}`);
+  async getImages(page: number = 1, limit: number = 10, publicationId?: string, search?: string): Promise<ImagesResponse> {
+    let query = `?page=${page}&limit=${limit}`;
+    if (publicationId) query += `&publicationId=${publicationId}`;
+    if (search) query += `&search=${encodeURIComponent(search)}`;
+    
+    return this.makeRequest<ImagesResponse>(`/images${query}`);
   }
 
   /**
@@ -250,22 +233,14 @@ export class ContentGemClient {
     return this.makeRequest('/images/upload', {
       method: 'POST',
       headers: {
-        'X-API-Key': this.apiKey,
+        'x-api-key': this.apiKey,
         // Don't set Content-Type for FormData
       },
       body: formData,
     });
   }
 
-  /**
-   * Generate AI image
-   */
-  async generateImage(prompt: string, style: string = 'realistic', size: string = '1024x1024'): Promise<{ success: boolean; data?: { image: Image }; message?: string; error?: string }> {
-    return this.makeRequest('/images/generate', {
-      method: 'POST',
-      body: JSON.stringify({ prompt, style, size }),
-    });
-  }
+
 
   /**
    * Delete image
@@ -277,6 +252,40 @@ export class ContentGemClient {
   }
 
   /**
+   * Get company information
+   */
+  async getCompanyInfo(): Promise<{ success: boolean; data?: CompanyInfo; message?: string; error?: string }> {
+    return this.makeRequest('/company');
+  }
+
+  /**
+   * Update company information
+   */
+  async updateCompanyInfo(companyInfo: Partial<CompanyInfo>): Promise<{ success: boolean; data?: CompanyInfo; message?: string; error?: string }> {
+    return this.makeRequest('/company', {
+      method: 'PUT',
+      body: JSON.stringify(companyInfo),
+    });
+  }
+
+  /**
+   * Parse company website
+   */
+  async parseCompanyWebsite(urls: string[]): Promise<{ success: boolean; data?: CompanyInfo; message?: string; error?: string }> {
+    return this.makeRequest('/company/parse', {
+      method: 'POST',
+      body: JSON.stringify({ urls }),
+    });
+  }
+
+  /**
+   * Get company parsing status
+   */
+  async getCompanyParsingStatus(): Promise<{ success: boolean; data?: { parsingStatus: string; canParseAgain: boolean; lastParsedAt?: string }; message?: string; error?: string }> {
+    return this.makeRequest('/company/parsing-status');
+  }
+
+  /**
    * Get subscription status
    */
   async getSubscriptionStatus(): Promise<SubscriptionStatus> {
@@ -284,17 +293,17 @@ export class ContentGemClient {
   }
 
   /**
-   * Get subscription limits
+   * Get available plans
    */
-  async getSubscriptionLimits(): Promise<{ success: boolean; data?: { userLimits: any }; message?: string; error?: string }> {
-    return this.makeRequest('/subscription/limits');
+  async getSubscriptionPlans(): Promise<PlansResponse> {
+    return this.makeRequest<PlansResponse>('/subscription/plans');
   }
 
   /**
-   * Get available plans
+   * Get subscription limits and API rate limits
    */
-  async getSubscriptionPlans(): Promise<{ success: boolean; data?: { plans: any[] }; message?: string; error?: string }> {
-    return this.makeRequest('/subscription/plans');
+  async getSubscriptionLimits(): Promise<ApiLimitsResponse> {
+    return this.makeRequest<ApiLimitsResponse>('/subscription/limits');
   }
 
   /**
@@ -351,16 +360,15 @@ export class ContentGemClient {
   /**
    * Wait for bulk generation to complete
    */
-  async waitForBulkGeneration(bulkSessionId: string, maxAttempts: number = 120, delayMs: number = 10000): Promise<BulkGenerationStatus> {
+  async waitForBulkGeneration(publicationIds: string[], maxAttempts: number = 60, delayMs: number = 10000): Promise<BulkStatusResponse> {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const status = await this.checkBulkGenerationStatus(bulkSessionId);
+      const status = await this.checkBulkGenerationStatus({ publicationIds });
       
-      if (status.success && status.data?.status === 'completed') {
-        return status;
-      }
-      
-      if (status.success && status.data?.status === 'failed') {
-        throw new Error('Bulk generation failed');
+      if (status.success && status.data) {
+        const { completedCount, failedCount, totalChecked } = status.data;
+        if (completedCount + failedCount >= totalChecked) {
+          return status;
+        }
       }
       
       if (attempt < maxAttempts - 1) {

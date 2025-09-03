@@ -15,125 +15,16 @@ export interface CompanyInfo {
     include_examples?: boolean;
     include_statistics?: boolean;
     include_images?: boolean;
+    include_custom_templates?: boolean;
   };
   tone?: 'professional' | 'casual' | 'friendly' | 'formal';
-}
-
-export interface BulkGenerationRequest {
-  prompts: string[];
-  company_info?: CompanyInfo;
-  common_settings?: {
-    length?: 'short' | 'medium' | 'long';
-    style?: 'educational' | 'conversational' | 'professional' | 'casual';
-    include_examples?: boolean;
-    include_statistics?: boolean;
-    include_images?: boolean;
-    tone?: 'professional' | 'casual' | 'friendly' | 'formal';
-  };
-}
-
-export interface BulkGenerationResponse {
-  success: boolean;
-  data?: {
-    bulk_session_id: string;
-    total_prompts: number;
-    status: 'processing' | 'completed' | 'failed';
-    publications: Array<{
-      id: string;
-      prompt: string;
-      status: 'pending' | 'generating' | 'completed' | 'failed';
-    }>;
-  };
-  message?: string;
-  error?: string;
-}
-
-export interface BulkGenerationStatus {
-  success: boolean;
-  data?: {
-    bulk_session_id: string;
-    total_prompts: number;
-    completed_prompts: number;
-    failed_prompts: number;
-    status: 'processing' | 'completed' | 'failed';
-    publications: Array<{
-      id: string;
-      title?: string;
-      prompt: string;
-      status: 'pending' | 'generating' | 'completed' | 'failed';
-      content?: string;
-      error?: string;
-    }>;
-  };
-  message?: string;
-  error?: string;
-}
-
-export interface CompanyData {
-  name?: string;
-  description?: string;
-  industry?: string;
-  website?: string;
-  contact_email?: string;
-  contact_phone?: string;
-  address?: string;
-  social_media?: {
-    linkedin?: string;
-    twitter?: string;
-    facebook?: string;
-    instagram?: string;
-  };
-  logo_url?: string;
-  founded_year?: number;
-  employee_count?: string;
-  revenue?: string;
-  target_audience?: string;
   services?: string[];
-  keywords?: string[];
-}
-
-export interface CompanyResponse {
-  success: boolean;
-  data?: {
-    company: CompanyData;
-    last_updated: string;
-    parsing_history?: Array<{
-      url: string;
-      status: 'success' | 'failed';
-      timestamp: string;
-      extracted_data?: Partial<CompanyData>;
-    }>;
-  };
-  message?: string;
-  error?: string;
-}
-
-export interface CompanyParsingRequest {
-  website_url: string;
-}
-
-export interface CompanyParsingResponse {
-  success: boolean;
-  data?: {
-    parsing_session_id: string;
-    status: 'processing' | 'completed' | 'failed';
-    message?: string;
-  };
-  message?: string;
-  error?: string;
-}
-
-export interface CompanyParsingStatus {
-  success: boolean;
-  data?: {
-    parsing_session_id: string;
-    status: 'processing' | 'completed' | 'failed';
-    progress?: number;
-    extracted_data?: Partial<CompanyData>;
-    error?: string;
-  };
-  message?: string;
-  error?: string;
+  expertise?: string[];
+  values?: string[];
+  mission?: string;
+  vision?: string;
+  website?: string;
+  socialMedia?: Record<string, string>;
 }
 
 export interface GenerationRequest {
@@ -158,7 +49,7 @@ export interface GenerationStatus {
   data?: {
     publicationId: string;
     sessionId: string;
-    status: 'generating' | 'completed' | 'failed';
+    status: 'generating' | 'completed' | 'failed' | 'in_progress';
     stepName?: string;
     content?: string;
     blogTopic?: string;
@@ -188,6 +79,9 @@ export interface Publication {
   contentLength: number;
   imagesCount: number;
   generationTimeSeconds?: number;
+  sessionId?: string;
+  initialPrompt?: string;
+  generatedBy?: 'web' | 'api';
   createdAt: string;
   updatedAt: string;
   publishedAt?: string;
@@ -203,12 +97,29 @@ export interface PublicationsResponse {
       totalItems: number;
       itemsPerPage: number;
     };
-    stats: Record<string, number>;
+    stats: {
+      total: number;
+      published: number;
+      draft: number;
+      archived: number;
+      thisMonth: number;
+      averageQualityScore?: number;
+      totalContentLength?: number;
+    };
     userLimits: {
       postsUsed: number;
       postsRemaining: number;
       planName: string;
+      planSlug: string;
       postsPerMonth: number;
+      features: Array<{
+        featureId?: {
+          name: string;
+          description: string;
+          identifier: string;
+        };
+        included: boolean;
+      }>;
     };
   };
   message?: string;
@@ -222,9 +133,18 @@ export interface Image {
   mimeType: string;
   size: number;
   url: string;
+  publicUrl: string;
   prompt?: string;
+  sectionTitle?: string;
   tags?: string[];
   publicationId?: string;
+  sessionId?: string;
+  fileSize: number;
+  dimensions?: {
+    width: number;
+    height: number;
+  };
+  isMainImage?: boolean;
   createdAt: string;
 }
 
@@ -237,6 +157,11 @@ export interface ImagesResponse {
       totalPages: number;
       totalItems: number;
       itemsPerPage: number;
+    };
+    stats: {
+      totalImages: number;
+      totalSize: number;
+      averageSize: number;
     };
   };
   message?: string;
@@ -273,7 +198,13 @@ export interface SubscriptionStatus {
 export interface StatisticsOverview {
   success: boolean;
   data?: {
-    publications: Record<string, number>;
+    publications: {
+      total: number;
+      published: number;
+      draft: number;
+      archived: number;
+      thisMonth: number;
+    };
     images: {
       totalImages: number;
       totalSize: number;
@@ -289,6 +220,224 @@ export interface StatisticsOverview {
       postsRemaining: number;
       planName: string;
       postsPerMonth: number;
+    };
+  };
+  message?: string;
+  error?: string;
+}
+
+export interface BulkGenerationRequest {
+  prompts: string[];
+  settings?: {
+    company_info?: CompanyInfo;
+    keywords?: string[];
+  };
+}
+
+export interface BulkGenerationResponse {
+  success: boolean;
+  data?: {
+    totalPrompts: number;
+    successCount: number;
+    errorCount: number;
+    publications: Array<{
+      id: string;
+      sessionId: string;
+    }>;
+  };
+  message?: string;
+  error?: string;
+}
+
+
+
+export interface Plan {
+  _id: string;
+  name: string;
+  slug: string;
+  description: string;
+  price: number;
+  currency: string;
+  interval: string;
+  postsPerMonth: number;
+  features: Array<{
+    name: string;
+    description: string;
+    included: boolean;
+  }>;
+  isActive: boolean;
+  isPopular: boolean;
+  sortOrder: number;
+  version: number;
+  stripePriceId: string;
+  stripeProductId: string;
+}
+
+export interface PlansResponse {
+  success: boolean;
+  data?: Plan[];
+  message?: string;
+  error?: string;
+}
+
+export interface ApiLimitsResponse {
+  success: boolean;
+  data?: {
+    rateLimits: {
+      general: {
+        requestsPerMinute: number;
+        requestsPerHour: number;
+      };
+      contentGeneration: {
+        requestsPer5Minutes: number;
+      };
+      statusChecks: {
+        requestsPerMinute: number;
+      };
+    };
+    subscriptionLimits: Array<{
+      name: string;
+      slug: string;
+      postsPerMonth: number;
+      price: number;
+      currency: string;
+      interval: string;
+      hasApiAccess: boolean;
+      features: Array<{
+        name: string;
+        description: string;
+        included: boolean;
+      }>;
+    }>;
+    userLimits?: {
+      postsUsed: number;
+      postsRemaining: number;
+      planName: string;
+      planSlug: string;
+      postsPerMonth: number;
+      features: any[];
+    };
+  };
+  message?: string;
+  error?: string;
+}
+
+export interface BulkGenerationRequest {
+  prompts: string[];
+  settings?: {
+    company_info?: CompanyInfo;
+    keywords?: string[];
+  };
+}
+
+export interface BulkGenerationResponse {
+  success: boolean;
+  data?: {
+    totalPrompts: number;
+    successCount: number;
+    errorCount: number;
+    publications: Array<{
+      id: string;
+      sessionId: string;
+    }>;
+  };
+  message?: string;
+  error?: string;
+}
+
+export interface BulkStatusRequest {
+  publicationIds: string[];
+}
+
+export interface BulkStatusResponse {
+  success: boolean;
+  data?: {
+    publicationStatuses: Array<{
+      id: string;
+      sessionId?: string;
+      status: string;
+      stepName?: string;
+      title?: string;
+      topic?: string;
+      content?: string;
+      metadata?: any;
+      created_at: string;
+    }>;
+    totalChecked: number;
+    completedCount: number;
+    failedCount: number;
+    inProgressCount: number;
+    createdCount: number;
+  };
+  message?: string;
+  error?: string;
+}
+
+export interface Plan {
+  _id: string;
+  name: string;
+  slug: string;
+  description: string;
+  price: number;
+  currency: string;
+  interval: string;
+  postsPerMonth: number;
+  features: Array<{
+    name: string;
+    description: string;
+    included: boolean;
+  }>;
+  isActive: boolean;
+  isPopular: boolean;
+  sortOrder: number;
+  version: number;
+  stripePriceId: string;
+  stripeProductId: string;
+}
+
+export interface PlansResponse {
+  success: boolean;
+  data?: Plan[];
+  message?: string;
+  error?: string;
+}
+
+export interface ApiLimitsResponse {
+  success: boolean;
+  data?: {
+    rateLimits: {
+      general: {
+        requestsPerMinute: number;
+        requestsPerHour: number;
+      };
+      contentGeneration: {
+        requestsPer5Minutes: number;
+      };
+      statusChecks: {
+        requestsPerMinute: number;
+      };
+    };
+    subscriptionLimits: Array<{
+      name: string;
+      slug: string;
+      postsPerMonth: number;
+      price: number;
+      currency: string;
+      interval: string;
+      hasApiAccess: boolean;
+      features: Array<{
+        name: string;
+        description: string;
+        included: boolean;
+      }>;
+    }>;
+    userLimits?: {
+      postsUsed: number;
+      postsRemaining: number;
+      planName: string;
+      planSlug: string;
+      postsPerMonth: number;
+      features: any[];
     };
   };
   message?: string;
