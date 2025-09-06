@@ -1,7 +1,7 @@
 {
-  "name": "contentgem-js",
+  "name": "gemcontent-js",
   "version": "1.0.0",
-  "description": "Official JavaScript SDK for ContentGem API",
+  "description": "Official JavaScript SDK for GemContent API",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
@@ -16,7 +16,7 @@
     "format": "prettier --write src/**/*.ts"
   },
   "keywords": [
-    "contentgem",
+    "gemcontent",
     "api",
     "sdk",
     "javascript",
@@ -24,13 +24,13 @@
     "content-generation",
     "ai"
   ],
-  "author": "ContentGem Team",
+  "author": "GemContent Team",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/contentgem/contentgem-js.git"
+    "url": "https://github.com/gemcontent/gemcontent-js.git"
   },
-  "homepage": "https://docs.contentgem.com/api",
+  "homepage": "https://docs.gemcontent.com/api",
   "devDependencies": {
     "@types/jest": "^29.5.0",
     "@typescript-eslint/eslint-plugin": "^5.0.0",

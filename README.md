@@ -1,19 +1,19 @@
-# ContentGem JavaScript SDK
+# GemContent JavaScript SDK
 
-Official JavaScript/TypeScript SDK for the ContentGem API.
+Official JavaScript/TypeScript SDK for the GemContent API.
 
 ## Installation
 
 ```bash
-npm install contentgem-js
+npm install gemcontent-js
 ```
 
 ## Quick Start
 
 ```javascript
-import ContentGemClient from 'contentgem-js';
+import GemContentClient from 'gemcontent-js';
 
-const client = new ContentGemClient({
+const client = new GemContentClient({
   apiKey: 'cg_your_api_key_here',
   baseUrl: 'https://your-domain.com/api/v1' // optional
 });
@@ -57,11 +57,11 @@ if (result.success) {
 ### Constructor
 
 ```javascript
-new ContentGemClient(config)
+new GemContentClient(config)
 ```
 
 **Config options:**
-- `apiKey` (required): Your ContentGem API key
+- `apiKey` (required): Your GemContent API key
 - `baseUrl` (optional): API base URL (default: `https://your-domain.com/api/v1`)
 - `timeout` (optional): Request timeout in milliseconds (default: 30000)
 
@@ -206,9 +206,9 @@ try {
 
 ```html
 <script type="module">
-  import ContentGemClient from 'https://unpkg.com/contentgem-js/dist/index.esm.js';
+  import GemContentClient from 'https://unpkg.com/gemcontent-js/dist/index.esm.js';
   
-  const client = new ContentGemClient({
+  const client = new GemContentClient({
     apiKey: 'cg_your_api_key_here'
   });
   
