@@ -1,17 +1,17 @@
-import { ContentGemClient } from '../src/client';
+import { GemContentClient } from '../src/client';
 import { CompanyInfo, GenerationRequest } from '../src/types';
 
 // Mock fetch
 import fetchMock from 'jest-fetch-mock';
 
-describe('ContentGemClient', () => {
-  let client: ContentGemClient;
+describe('GemContentClient', () => {
+  let client: GemContentClient;
   const mockApiKey = 'cg_test_api_key_123';
   const mockBaseUrl = 'https://api.test.com/v1';
 
   beforeEach(() => {
     fetchMock.resetMocks();
-    client = new ContentGemClient({
+    client = new GemContentClient({
       apiKey: mockApiKey,
       baseUrl: mockBaseUrl,
     });
@@ -19,17 +19,17 @@ describe('ContentGemClient', () => {
 
   describe('constructor', () => {
     it('should create client with default config', () => {
-      const defaultClient = new ContentGemClient({ apiKey: mockApiKey });
-      expect(defaultClient).toBeInstanceOf(ContentGemClient);
+      const defaultClient = new GemContentClient({ apiKey: mockApiKey });
+      expect(defaultClient).toBeInstanceOf(GemContentClient);
     });
 
     it('should create client with custom config', () => {
-      const customClient = new ContentGemClient({
+      const customClient = new GemContentClient({
         apiKey: mockApiKey,
         baseUrl: mockBaseUrl,
         timeout: 5000,
       });
-      expect(customClient).toBeInstanceOf(ContentGemClient);
+      expect(customClient).toBeInstanceOf(GemContentClient);
     });
   });
 

@@ -1,6 +1,6 @@
 import fetch, { RequestInit, Response } from 'node-fetch';
 import {
-  ContentGemConfig,
+  GemContentConfig,
   GenerationRequest,
   GenerationResponse,
   GenerationStatus,
@@ -20,12 +20,12 @@ import {
   ApiLimitsResponse
 } from './types';
 
-export class ContentGemClient {
+export class GemContentClient {
   private apiKey: string;
   private baseUrl: string;
   private timeout: number;
 
-  constructor(config: ContentGemConfig) {
+  constructor(config: GemContentConfig) {
     this.apiKey = config.apiKey;
     this.baseUrl = config.baseUrl || 'https://gemcontent.com/api/v1';
     this.timeout = config.timeout || 30000;

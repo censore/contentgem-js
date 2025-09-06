@@ -1,5 +1,5 @@
-export { ContentGemClient } from './client';
+export { GemContentClient } from './client';
 export * from './types';
 
 // Default export
-export default ContentGemClient; 
+export default GemContentClient; 

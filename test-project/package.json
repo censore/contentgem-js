@@ -1,0 +1,29 @@
+{
+  "name": "contentgem-js-test",
+  "version": "1.0.0",
+  "description": "Test project for ContentGem JavaScript client library",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/simple-test.js",
+    "test": "node src/simple-test.js",
+    "dev": "nodemon src/simple-test.js",
+    "build": "tsc",
+    "type-check": "tsc --noEmit",
+    "simple": "node src/simple-test.js"
+  },
+  "keywords": ["contentgem", "api", "client", "test"],
+  "author": "ContentGem Team",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "chalk": "^5.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.0",
+    "typescript": "^5.2.0",
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

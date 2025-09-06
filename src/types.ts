@@ -1,4 +1,4 @@
-export interface ContentGemConfig {
+export interface GemContentConfig {
   apiKey: string;
   baseUrl?: string;
   timeout?: number;

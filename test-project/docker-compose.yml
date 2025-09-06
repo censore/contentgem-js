@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  contentgem-js-test:
+    build: .
+    container_name: contentgem-js-test
+    environment:
+      - NODE_ENV=development
+      - CONTENTGEM_API_KEY=${CONTENTGEM_API_KEY}
+      - CONTENTGEM_BASE_URL=${CONTENTGEM_BASE_URL:-https://gemcontent.com/api/v1}
+      - TEST_TIMEOUT=${TEST_TIMEOUT:-30000}
+      - TEST_MAX_ATTEMPTS=${TEST_MAX_ATTEMPTS:-60}
+      - TEST_DELAY_MS=${TEST_DELAY_MS:-5000}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_COLORS=${LOG_COLORS:-true}
+    volumes:
+      - ./.env:/app/.env:ro
+      - ./logs:/app/logs
+    ports:
+      - "3000:3000"
+    networks:
+      - contentgem-test
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('Health check passed')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Add a development service with hot reload
+  contentgem-js-test-dev:
+    build: .
+    container_name: contentgem-js-test-dev
+    environment:
+      - NODE_ENV=development
+      - CONTENTGEM_API_KEY=${CONTENTGEM_API_KEY}
+      - CONTENTGEM_BASE_URL=${CONTENTGEM_BASE_URL:-https://gemcontent.com/api/v1}
+      - TEST_TIMEOUT=${TEST_TIMEOUT:-30000}
+      - TEST_MAX_ATTEMPTS=${TEST_MAX_ATTEMPTS:-60}
+      - TEST_DELAY_MS=${TEST_DELAY_MS:-5000}
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
+      - LOG_COLORS=${LOG_COLORS:-true}
+    volumes:
+      - ./.env:/app/.env:ro
+      - ./src:/app/src
+      - ./logs:/app/logs
+      - /app/node_modules
+    ports:
+      - "3001:3000"
+    networks:
+      - contentgem-test
+    restart: unless-stopped
+    command: ["npm", "run", "dev"]
+    profiles:
+      - dev
+
+networks:
+  contentgem-test:
+    driver: bridge
+
+volumes:
+  logs:
